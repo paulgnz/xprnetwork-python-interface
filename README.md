@@ -1,18 +1,7 @@
 <div align="center">
     
-<p align="center">
-  <img width="600" src="https://miro.medium.com/max/1400/1*5KEvJB1UBBsk_1ZTBtJfJA.png">
-</p>
-    
 *Minimalist python library to interact with "XPR Network" blockchain also known as "XPR" or "XPRNetwork"*
 
-
- 
-![Test](https://github.com/paulgnz/xprpy/actions/workflows/main_workflow.yml/badge.svg)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/xprpy)
-![version](https://img.shields.io/pypi/v/xprpy)
-![GitHub repo size](https://img.shields.io/github/repo-size/paulgnz/xprpy)
-![GitHub last commit](https://img.shields.io/github/last-commit/paulgnz/xprpy)
 
 </div>
 
