@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="xprpy",  # The name of your package
-    version="1.0.0",  # The initial version of your package
+    version="1.0.1",  # The initial version of your package
     author="paulgnz",
     author_email="protonnz4@gmail.com",
     description="A Python library for XPR Network blockchain transactions.",

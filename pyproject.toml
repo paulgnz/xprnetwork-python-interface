@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "xprpy"
-version = "1.0.0"
+version = "1.0.1"
 description = "Interact with XPR Network blockchain"
 authors = ["Team <consoritum@xprnetwork.org>"]
 homepage = "https://github.com/paulgnz/xprpy"
