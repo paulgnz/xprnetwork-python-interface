@@ -6,27 +6,27 @@ import json
 import pydantic
 import pytest
 
-import pyntelope
+import xprpy
 
 from .contracts.valid import eosio_token as eosio_token_contract
 from .contracts.valid import hello as valid_contract
 
 
 def test_create_authorization_using_dict():
-    auth = pyntelope.Authorization.parse_obj(
+    auth = xprpy.Authorization.parse_obj(
         {"actor": "aaa", "permission": "active"}
     )
-    assert isinstance(auth, pyntelope.Authorization)
+    assert isinstance(auth, xprpy.Authorization)
 
 
 def test_create_authorization_using_keywords():
-    auth = pyntelope.Authorization(actor="aaa", permission="active")
-    assert isinstance(auth, pyntelope.Authorization)
+    auth = xprpy.Authorization(actor="aaa", permission="active")
+    assert isinstance(auth, xprpy.Authorization)
 
 
 def test_create_authorization_requires_actor_len_lt_13():
     with pytest.raises(pydantic.ValidationError):
-        pyntelope.Authorization(actor="a" * 14, permission="active")
+        xprpy.Authorization(actor="a" * 14, permission="active")
 
 
 def test_authorization_is_immutable(auth):
@@ -35,23 +35,23 @@ def test_authorization_is_immutable(auth):
 
 
 def test_data_dict_serialization():
-    data = pyntelope.Data(name="int_value", value=pyntelope.types.Int8(10))
+    data = xprpy.Data(name="int_value", value=xprpy.types.Int8(10))
     data_json = data.dict()
     assert data_json == {"name": "int_value", "type": "Int8", "value": 10}
 
 
 def test_data_json_serialization():
-    data = pyntelope.Data(name="int_value", value=pyntelope.types.Int8(10))
+    data = xprpy.Data(name="int_value", value=xprpy.types.Int8(10))
     data_json = data.json()
     assert data_json == '{"name": "int_value", "type": "Int8", "value": 10}'
 
 
 def test_create_data_from_dict_with_len_3():
-    data_from_dict = pyntelope.Data.parse_obj(
+    data_from_dict = xprpy.Data.parse_obj(
         {"name": "int_value", "type": "Int8", "value": 10}
     )
-    data_from_init = pyntelope.Data(
-        name="int_value", value=pyntelope.types.Int8(10)
+    data_from_init = xprpy.Data(
+        name="int_value", value=xprpy.types.Int8(10)
     )
     assert data_from_dict == data_from_init
 
@@ -59,21 +59,21 @@ def test_create_data_from_dict_with_len_3():
 def test_when_create_data_from_dict_with_len_1_then_raises_value_error():
     d = {"name": "int_value"}
     with pytest.raises(ValueError):
-        pyntelope.Data.parse_obj(d)
+        xprpy.Data.parse_obj(d)
 
 
 def test_when_create_data_from_dict_with_len_4_then_raises_value_error():
     d = {"name": "int_value", "type": "Int8", "value": 10, "a": "a"}
     with pytest.raises(ValueError):
-        pyntelope.Data.parse_obj(d)
+        xprpy.Data.parse_obj(d)
 
 
 def test_backend_serialization_matches_server_serialization(net):
     data = [
-        pyntelope.Data(name="from", value=pyntelope.types.Name("user2")),
-        pyntelope.Data(
+        xprpy.Data(name="from", value=xprpy.types.Name("user2")),
+        xprpy.Data(
             name="message",
-            value=pyntelope.types.String("hello"),
+            value=xprpy.types.String("hello"),
         ),
     ]
     backend_data_bytes = b""
@@ -96,15 +96,15 @@ def test_backend_serialization_matches_server_serialization(net):
 
 def test_backend_transfer_transaction_serialization(net):
     data = [
-        pyntelope.Data(name="from", value=pyntelope.types.Name("user2")),
-        pyntelope.Data(name="to", value=pyntelope.types.Name("user2")),
-        pyntelope.Data(
+        xprpy.Data(name="from", value=xprpy.types.Name("user2")),
+        xprpy.Data(name="to", value=xprpy.types.Name("user2")),
+        xprpy.Data(
             name="quantity",
-            value=pyntelope.types.Asset(str(2**61) + " WAX"),
+            value=xprpy.types.Asset(str(2**61) + " WAX"),
         ),
-        pyntelope.Data(
+        xprpy.Data(
             name="memo",
-            value=pyntelope.types.String("Trying pyntelope"),
+            value=xprpy.types.String("Trying xprpy"),
         ),
     ]
     backend_data_bytes = b""
@@ -118,7 +118,7 @@ def test_backend_transfer_transaction_serialization(net):
             "from": "user2",
             "to": "user2",
             "quantity": str(2**61) + " WAX",
-            "memo": "Trying pyntelope",
+            "memo": "Trying xprpy",
         },
     )
 
@@ -128,23 +128,23 @@ def test_backend_transfer_transaction_serialization(net):
 
 
 def test_backend_json_to_hex_abi_serialization(net):
-    abi_obj = pyntelope.types.Abi.from_file(eosio_token_contract.path_abi)
+    abi_obj = xprpy.types.Abi.from_file(eosio_token_contract.path_abi)
 
     server_resp = net.get_raw_code_and_abi(account_name="eosio.token")
     server_abi = server_resp["abi"]
-    server_abi_hex = pyntelope.types.compostes._bin_to_hex(server_abi)
+    server_abi_hex = xprpy.types.compostes._bin_to_hex(server_abi)
 
     assert server_abi_hex == abi_obj.to_hex()
 
 
 def test_backend_set_wasm_code_transaction_serialization(net):
-    wasm_obj = pyntelope.types.Wasm.from_file(valid_contract.path_zip)
+    wasm_obj = xprpy.types.Wasm.from_file(valid_contract.path_zip)
 
     data = [
-        pyntelope.Data(name="account", value=pyntelope.types.Name("user2")),
-        pyntelope.Data(name="vmtype", value=pyntelope.types.Uint8(0)),
-        pyntelope.Data(name="vmversion", value=pyntelope.types.Uint8(0)),
-        pyntelope.Data(name="code", value=wasm_obj),
+        xprpy.Data(name="account", value=xprpy.types.Name("user2")),
+        xprpy.Data(name="vmtype", value=xprpy.types.Uint8(0)),
+        xprpy.Data(name="vmversion", value=xprpy.types.Uint8(0)),
+        xprpy.Data(name="code", value=wasm_obj),
     ]
     backend_data_bytes = b""
     for d in data:
@@ -167,11 +167,11 @@ def test_backend_set_wasm_code_transaction_serialization(net):
 
 
 def test_backend_set_abi_transaction_serialization(net):
-    abi_obj = pyntelope.types.Abi.from_file(valid_contract.path_abi)
+    abi_obj = xprpy.types.Abi.from_file(valid_contract.path_abi)
 
     data = [
-        pyntelope.Data(name="account", value=pyntelope.types.Name("user2")),
-        pyntelope.Data(name="abi", value=abi_obj),
+        xprpy.Data(name="account", value=xprpy.types.Name("user2")),
+        xprpy.Data(name="abi", value=abi_obj),
     ]
     pyntelope_serialized_data = b""
     for d in data:
@@ -188,18 +188,18 @@ def test_backend_set_abi_transaction_serialization(net):
 
 def test_data_bytes_hex_return_expected_value():
     data = [
-        pyntelope.Data(
-            name="from", value=pyntelope.types.Name("youraccount1")
+        xprpy.Data(
+            name="from", value=xprpy.types.Name("youraccount1")
         ),
-        pyntelope.Data(name="to", value=pyntelope.types.Name("argentinaeos")),
-        pyntelope.Data(
+        xprpy.Data(name="to", value=xprpy.types.Name("argentinaeos")),
+        xprpy.Data(
             name="memo",
-            value=pyntelope.types.String(" This tx was sent using PYNTELOPE"),
+            value=xprpy.types.String(" This tx was sent using PYNTELOPE"),
         ),
     ]
     data_bytes = [bytes(d) for d in data]
-    data = pyntelope.types.Array.from_dict(
-        data_bytes, type_=pyntelope.types.Bytes
+    data = xprpy.types.Array.from_dict(
+        data_bytes, type_=xprpy.types.Bytes
     )
     bytes_ = bytes(data)
     action_hex = bytes_.hex()
@@ -208,22 +208,22 @@ def test_data_bytes_hex_return_expected_value():
 
 
 def test_create_action():
-    auth = [pyntelope.Authorization(actor="user2", permission="active")]
+    auth = [xprpy.Authorization(actor="user2", permission="active")]
     data = []
 
-    action = pyntelope.Action(
+    action = xprpy.Action(
         account="user2",
         name="clear",
         data=data,
         authorization=auth,
     )
 
-    assert isinstance(action, pyntelope.Action)
+    assert isinstance(action, xprpy.Action)
 
 
 def test_action_requirest_at_least_one_auth():
     with pytest.raises(pydantic.ValidationError):
-        pyntelope.Action(
+        xprpy.Action(
             account="user2",
             name="clear",
             data=[],
@@ -232,29 +232,29 @@ def test_action_requirest_at_least_one_auth():
 
 
 def test_when_action_link_returns_linked_action(net):
-    action = pyntelope.Action(
+    action = xprpy.Action(
         account="user2",
         name="sendmsg",
         data=[
-            pyntelope.Data(name="from", value=pyntelope.types.Name("user1")),
-            pyntelope.Data(
+            xprpy.Data(name="from", value=xprpy.types.Name("user1")),
+            xprpy.Data(
                 name="message",
-                value=pyntelope.types.String("msg sent using pyntelope"),
+                value=xprpy.types.String("msg sent using xprpy"),
             ),
         ],
         authorization=[
-            pyntelope.Authorization(actor="user1", permission="active"),
+            xprpy.Authorization(actor="user1", permission="active"),
         ],
     )
     linked_action = action.link(net=net)
-    assert isinstance(linked_action, pyntelope.LinkedAction)
+    assert isinstance(linked_action, xprpy.LinkedAction)
 
 
 @pytest.fixture
 def action_clear():
-    auth = [pyntelope.Authorization(actor="user2", permission="active")]
+    auth = [xprpy.Authorization(actor="user2", permission="active")]
     data = []
-    action = pyntelope.Action(
+    action = xprpy.Action(
         account="user2",
         name="clear",
         data=data,
@@ -271,27 +271,27 @@ def test_action_fields_are_immutable(action_clear):
 
 
 def test_create_transaction(action_clear):
-    trans = pyntelope.Transaction(actions=[action_clear])
-    assert isinstance(trans, pyntelope.Transaction)
+    trans = xprpy.Transaction(actions=[action_clear])
+    assert isinstance(trans, xprpy.Transaction)
 
 
 def test_when_link_raw_transaction_then_returns_linked_transaction(
     action_clear, net
 ):
-    raw_trans = pyntelope.Transaction(actions=[action_clear])
+    raw_trans = xprpy.Transaction(actions=[action_clear])
     linked_trans = raw_trans.link(net=net)
-    assert isinstance(linked_trans, pyntelope.LinkedTransaction)
+    assert isinstance(linked_trans, xprpy.LinkedTransaction)
 
 
 def test_when_sign_linked_transaction_then_return_signed_transaction(
     action_clear, net
 ):
-    raw_trans = pyntelope.Transaction(actions=[action_clear])
+    raw_trans = xprpy.Transaction(actions=[action_clear])
     linked_trans = raw_trans.link(net=net)
     signed_trans = linked_trans.sign(
         key="5HsVgxhxdL9gvgcAAyCZSWNgtLxAhGfEX2YU98w6QSkePoVvPNK"
     )
-    assert isinstance(signed_trans, pyntelope.SignedTransaction)
+    assert isinstance(signed_trans, xprpy.SignedTransaction)
 
 
 # transaction serialization, id and signature
@@ -299,22 +299,22 @@ def test_when_sign_linked_transaction_then_return_signed_transaction(
 
 @pytest.fixture
 def example_transaction(net):
-    action = pyntelope.LinkedAction(
+    action = xprpy.LinkedAction(
         net=net,
         account="user2",
         name="sendmsg",
         data=[
-            pyntelope.Data(name="from", value=pyntelope.types.Name("user2")),
-            pyntelope.Data(
+            xprpy.Data(name="from", value=xprpy.types.Name("user2")),
+            xprpy.Data(
                 name="message",
-                value=pyntelope.types.String("hello"),
+                value=xprpy.types.String("hello"),
             ),
         ],
         authorization=[
-            pyntelope.Authorization(actor="user2", permission="active"),
+            xprpy.Authorization(actor="user2", permission="active"),
         ],
     )
-    linked_trans = pyntelope.LinkedTransaction(
+    linked_trans = xprpy.LinkedTransaction(
         actions=[action.link(net)],
         net=net,
         expiration_delay_sec=0,
@@ -351,7 +351,7 @@ def test_example_transaction_has_expected_signature(example_transaction):
 
 @pytest.fixture
 def trans_signed(action_clear, net):
-    raw_trans = pyntelope.Transaction(actions=[action_clear])
+    raw_trans = xprpy.Transaction(actions=[action_clear])
     linked_trans = raw_trans.link(net=net)
     trans = linked_trans.sign(
         key="5K5UHY2LjHw2QQFJKCd2PdF7hxPJnknMfQLhxbEguJJttr1DFdp",
@@ -369,7 +369,7 @@ def test_when_sign_signed_transaction_then_return_signed_transaction(
     trans2 = trans_signed.sign(
         key="5K5UHY2LjHw2QQFJKCd2PdF7hxPJnknMfQLhxbEguJJttr1DFdp"
     )
-    assert isinstance(trans2, pyntelope.SignedTransaction)
+    assert isinstance(trans2, xprpy.SignedTransaction)
 
 
 def test_double_signed_transaction_has_2_signatures(
@@ -393,20 +393,20 @@ def test_when_send_example_transaction_then_returns_expired_transaction_error(
 
 def test_e2e_with_transaction_ok(net):
     data = [
-        pyntelope.Data(name="from", value=pyntelope.types.Name("user2")),
-        pyntelope.Data(
+        xprpy.Data(name="from", value=xprpy.types.Name("user2")),
+        xprpy.Data(
             name="message",
-            value=pyntelope.types.String("I cant say hello again"),
+            value=xprpy.types.String("I cant say hello again"),
         ),
     ]
-    trans = pyntelope.Transaction(
+    trans = xprpy.Transaction(
         actions=[
-            pyntelope.Action(
+            xprpy.Action(
                 account="user2",
                 name="sendmsg",
                 data=data,
                 authorization=[
-                    pyntelope.Authorization(actor="user2", permission="active")
+                    xprpy.Authorization(actor="user2", permission="active")
                 ],
             )
         ],
@@ -429,20 +429,20 @@ def test_e2e_with_transaction_ok(net):
 
 def test_e2e_with_transaction_signed_with_the_wrong_key(net):
     data = [
-        pyntelope.Data(name="from", value=pyntelope.types.Name("user2")),
-        pyntelope.Data(
+        xprpy.Data(name="from", value=xprpy.types.Name("user2")),
+        xprpy.Data(
             name="message",
-            value=pyntelope.types.String("I cant say hello"),
+            value=xprpy.types.String("I cant say hello"),
         ),
     ]
-    trans = pyntelope.Transaction(
+    trans = xprpy.Transaction(
         actions=[
-            pyntelope.Action(
+            xprpy.Action(
                 account="user2",
                 name="sendmsg",
                 data=data,
                 authorization=[
-                    pyntelope.Authorization(actor="user2", permission="active")
+                    xprpy.Authorization(actor="user2", permission="active")
                 ],
             )
         ],

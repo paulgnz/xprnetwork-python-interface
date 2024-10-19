@@ -375,7 +375,7 @@ class String(Primitive):
         if len(v) < len(v.encode("utf8")):
             msg = (
                 f'Input "{v}" has a multi-byte utf character in it, '
-                "currently pyntelope does not support serialization of "
+                "currently xprpy does not support serialization of "
                 "multi-byte utf characters."
             )
             raise ValueError(msg)

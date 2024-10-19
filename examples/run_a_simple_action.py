@@ -1,32 +1,32 @@
 """Run a `runjob` action."""
 
 
-import pyntelope
+import xprpy
 
 
 data = [
-    pyntelope.Data(
+    xprpy.Data(
         name="worker",
-        value=pyntelope.types.Name("open.facings"),
+        value=xprpy.types.Name("open.facings"),
     ),
-    pyntelope.Data(
+    xprpy.Data(
         name="nonce",
-        value=pyntelope.types.Uint64(123),
+        value=xprpy.types.Uint64(123),
     ),
 ]
 
-auth = pyntelope.Authorization(actor="youraccount", permission="active")
+auth = xprpy.Authorization(actor="youraccount", permission="active")
 
-action = pyntelope.Action(
+action = xprpy.Action(
     account="open.facings",
     name="runjobs",
     data=data,
     authorization=[auth],
 )
 
-raw_transaction = pyntelope.Transaction(actions=[action])
+raw_transaction = xprpy.Transaction(actions=[action])
 
-net = pyntelope.WaxTestnet()
+net = xprpy.WaxTestnet()
 linked_transaction = raw_transaction.link(net=net)
 
 key = "a_very_secret_key"

@@ -6,16 +6,16 @@
     
 *Minimalist python library to interact with antelope blockchain networks*
  
-![Test](https://github.com/FACINGS/pyntelope/actions/workflows/main_workflow.yml/badge.svg)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pyntelope)
-![version](https://img.shields.io/pypi/v/pyntelope)
-![GitHub repo size](https://img.shields.io/github/repo-size/facings/pyntelope)
-![GitHub last commit](https://img.shields.io/github/last-commit/facings/pyntelope)
+![Test](https://github.com/FACINGS/xprpy/actions/workflows/main_workflow.yml/badge.svg)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/xprpy)
+![version](https://img.shields.io/pypi/v/xprpy)
+![GitHub repo size](https://img.shields.io/github/repo-size/facings/xprpy)
+![GitHub last commit](https://img.shields.io/github/last-commit/facings/xprpy)
 
 </div>
 
 # What is it?
-**pyntelope** is a python library to interact with Antelope blockchains.  
+**xprpy** is a python library to interact with Antelope blockchains.  
 Its main focus are server side applications.  
 This library is heavily influenced by [µEOSIO](https://github.com/EOSArgentina/ueosio). Many thanks to them for the astonishing job!  
 
@@ -26,7 +26,7 @@ Its main usage today is to send transactions to the blockchain
 - Statically typed
 This library enforces and verifies types and values.
 - Serialization
-**pyntelope** serializes the transaction before sending to the blockchain. 
+**xprpy** serializes the transaction before sending to the blockchain. 
 - Paralellization
 Although python has the [GIL](https://realpython.com/python-gil/) we try to make as easier as possible to paralellize the jobs.  
 All data is as immutable and all functions are as pure as we can make them.  
@@ -40,42 +40,42 @@ However we'd advise for you to fix its version when deploying to prod.
 
 
 # Using
-Just `pip install pyntelope` and play around.  
+Just `pip install xprpy` and play around.  
 (we don't support, and have no plans to support [conda](https://docs.conda.io/en/latest/))  
 Rather then starting with long docs, just a simple example:  
 
 
 ## Use Send Message action
 ```python
-import pyntelope
+import xprpy
 
 
 print("Create Transaction")
 data=[
-    pyntelope.Data(
+    xprpy.Data(
         name="from",
-        value=pyntelope.types.Name("me.wam"), 
+        value=xprpy.types.Name("me.wam"), 
     ),
-    pyntelope.Data(
+    xprpy.Data(
         name="message",
-         value=pyntelope.types.String("hello from pyntelope"),
+         value=xprpy.types.String("hello from xprpy"),
     ),
 ]
 
-auth = pyntelope.Authorization(actor="me.wam", permission="active")
+auth = xprpy.Authorization(actor="me.wam", permission="active")
 
-action = pyntelope.Action(
+action = xprpy.Action(
     account="me.wam", # this is the contract account
     name="sendmsg", # this is the action name
     data=data,
     authorization=[auth],
 )
 
-raw_transaction = pyntelope.Transaction(actions=[action])
+raw_transaction = xprpy.Transaction(actions=[action])
 
 print("Link transaction to the network")
-net = pyntelope.WaxTestnet()  # this is an alias for a testnet node
-# notice that pyntelope returns a new object instead of change in place
+net = xprpy.WaxTestnet()  # this is an alias for a testnet node
+# notice that xprpy returns a new object instead of change in place
 linked_transaction = raw_transaction.link(net=net)
 
 
@@ -109,7 +109,7 @@ Although we have the next few steps already planned, we are happy to receive the
 
 
 ### Development
-If you want to develop for **pyntelope**, here are some tips for a local development environment.
+If you want to develop for **xprpy**, here are some tips for a local development environment.
 We'll be more then happy to receive PRs from the community.
 Also we're going full [Black](https://black.readthedocs.io/en/stable/) and enforcing [pydocstyle](http://www.pydocstyle.org/en/stable/) and [isort](https://pypi.org/project/isort/) (with the limitations described in the .flake8 file)
 

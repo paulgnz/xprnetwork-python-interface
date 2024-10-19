@@ -5,7 +5,7 @@ import httpx
 import pydantic
 import pytest
 
-import pyntelope
+import xprpy
 
 
 def test_should_always_pass():
@@ -13,13 +13,13 @@ def test_should_always_pass():
 
 
 def test_when_instantiate_net_returns_net_object():
-    net = pyntelope.Net(host="http://127.0.0.1:8888")
-    assert isinstance(net, pyntelope.Net)
+    net = xprpy.Net(host="http://127.0.0.1:8888")
+    assert isinstance(net, xprpy.Net)
 
 
 def test_when_instantiate_net_with_incorrect_host_format_then_raises_error():
     with pytest.raises(pydantic.ValidationError):
-        pyntelope.Net(host="rpc://127.0.0.1:8888")
+        xprpy.Net(host="rpc://127.0.0.1:8888")
 
 
 def test_when_net_get_info_then_returns_dict(net):
@@ -30,7 +30,7 @@ def test_when_net_get_info_then_returns_dict(net):
 def test_given_http_timeout_when_net_get_info_then_raise_connection_error(
     httpx_mock, net
 ):
-    with pytest.raises(pyntelope.exc.ConnectionError):
+    with pytest.raises(xprpy.exc.ConnectionError):
         net.get_info()
 
 
@@ -41,7 +41,7 @@ def test_given_http_write_error_when_net_get_info_then_raise_connection_error(
         raise httpx.WriteError("")
 
     httpx_mock.add_callback(raise_write_error)
-    with pytest.raises(pyntelope.exc.ConnectionError):
+    with pytest.raises(xprpy.exc.ConnectionError):
         net.get_info()
 
 
@@ -49,7 +49,7 @@ def test_given_http_return_400_when_net_get_info_then_raise_connection_error(
     httpx_mock, net
 ):
     httpx_mock.add_response(status_code=400)
-    with pytest.raises(pyntelope.exc.ConnectionError):
+    with pytest.raises(xprpy.exc.ConnectionError):
         net.get_info()
 
 
@@ -81,14 +81,14 @@ aliases = [
 
 @pytest.mark.parametrize("alias", aliases)
 def test_when_instantiate_though_alias_then_host_has_tld(alias):
-    net_factory = getattr(pyntelope, alias)
+    net_factory = getattr(xprpy, alias)
     net = net_factory()
     patt = r"^https://[\w\.]{3,}"
     assert re.match(patt, net.host)
 
 
 def test_when_instantiate_localnet_then_host_is_localhost():
-    net = pyntelope.Local()
+    net = xprpy.Local()
     assert net.host.startswith("http://127.0.0.1")
 
 
@@ -200,20 +200,20 @@ def test_when_get_table_by_scope_with_no_contract_then_rows_are_empty(net):
 def test_when_get_table_by_scope_with_contract_then_rows_have_objects(net):
     # send a transaction just for the table to be created
     data = [
-        pyntelope.Data(name="from", value=pyntelope.types.Name("user2")),
-        pyntelope.Data(
+        xprpy.Data(name="from", value=xprpy.types.Name("user2")),
+        xprpy.Data(
             name="message",
-            value=pyntelope.types.String("hello"),
+            value=xprpy.types.String("hello"),
         ),
     ]
-    trans = pyntelope.Transaction(
+    trans = xprpy.Transaction(
         actions=[
-            pyntelope.Action(
+            xprpy.Action(
                 account="user2",
                 name="sendmsg",
                 data=data,
                 authorization=[
-                    pyntelope.Authorization(actor="user2", permission="active")
+                    xprpy.Authorization(actor="user2", permission="active")
                 ],
             )
         ],
@@ -305,7 +305,7 @@ def test_get_info_request_headers_include_pyntelope_user_agent(
     net.get_info()
     requests = httpx_mock.get_requests()
     headers = requests[0].headers
-    assert "pyntelope" in headers["user-agent"].lower()
+    assert "xprpy" in headers["user-agent"].lower()
 
 
 def test_get_info_request_headers_include_main_headers(net, httpx_mock):
@@ -329,7 +329,7 @@ def test_get_info_request_headers_include_main_headers(net, httpx_mock):
 def test_given_net_with_specific_header_then_use_specific_header(httpx_mock):
     httpx_mock.add_response(json={}, status_code=200)
     custom_headers = {"user-agent": "aaa", "x-bbb": "ccc"}
-    net = pyntelope.Local(headers=custom_headers)
+    net = xprpy.Local(headers=custom_headers)
     net.get_info()
     requests = httpx_mock.get_requests()
     headers = requests[0].headers
@@ -341,7 +341,7 @@ def test_given_net_with_specific_header_then_user_agent_is_overwritten(
 ):
     httpx_mock.add_response(json={}, status_code=200)
     custom_headers = {"user-agent": "aaa", "x-bbb": "ccc"}
-    net = pyntelope.Local(headers=custom_headers)
+    net = xprpy.Local(headers=custom_headers)
     net.get_info()
     requests = httpx_mock.get_requests()
     headers = requests[0].headers
@@ -349,15 +349,15 @@ def test_given_net_with_specific_header_then_user_agent_is_overwritten(
 
 
 def test_can_be_instantiated_with_auth_param():
-    net = pyntelope.Local(auth=("user", "password"))
-    assert isinstance(net, pyntelope.Net)
+    net = xprpy.Local(auth=("user", "password"))
+    assert isinstance(net, xprpy.Net)
 
 
 def test_given_net_with_auth_tuple_then_request_has_authorization_header(
     httpx_mock,
 ):
     httpx_mock.add_response(json={}, status_code=200)
-    net = pyntelope.Local(auth=("user", "password"))
+    net = xprpy.Local(auth=("user", "password"))
     net.get_info()
     requests = httpx_mock.get_requests()
     headers = requests[0].headers
@@ -366,7 +366,7 @@ def test_given_net_with_auth_tuple_then_request_has_authorization_header(
 
 def test_given_net_with_auth_then_authorization_headers_match(httpx_mock):
     httpx_mock.add_response(json={}, status_code=200)
-    net = pyntelope.Local(auth=("user", "password"))
+    net = xprpy.Local(auth=("user", "password"))
     net.get_info()
     requests = httpx_mock.get_requests()
     headers = requests[0].headers
@@ -377,47 +377,47 @@ def test_given_net_with_auth_then_authorization_headers_match(httpx_mock):
 
 
 def test_when_use_net_with_context_syntax_then_net_object_is_created():
-    with pyntelope.Local() as net:
-        assert isinstance(net, pyntelope.Net)
+    with xprpy.Local() as net:
+        assert isinstance(net, xprpy.Net)
 
 
 def test_when_use_net_with_context_syntax_then_info_returns_dict():
-    with pyntelope.Local() as net:
+    with xprpy.Local() as net:
         info = net.get_info()
     assert isinstance(info, dict)
 
 
 def test_net_accepts_client_object_in_initialization():
     with httpx.Client() as client:
-        net = pyntelope.Local(client=client)
-    assert isinstance(net, pyntelope.Net)
+        net = xprpy.Local(client=client)
+    assert isinstance(net, xprpy.Net)
 
 
 def test_when_initialize_net_with_client_then_client_attribute_is_the_same():
     with httpx.Client() as client:
-        net = pyntelope.Local(client=client)
+        net = xprpy.Local(client=client)
         assert id(net.client) == id(client)
 
 
 def test_when_initialize_with_context_manager_then_client_attr_is_the_same():
     with httpx.Client() as client:
-        with pyntelope.Local(client=client) as net:
+        with xprpy.Local(client=client) as net:
             assert id(net.client) == id(client)
 
 
 def test_when_initialize_with_context_manager_then_auto_create_client():
-    with pyntelope.Local() as net:
+    with xprpy.Local() as net:
         assert isinstance(net.client, httpx.Client)
 
 
 def test_when_inside_the_context_manager_then_can_get_info():
-    with pyntelope.Local() as net:
+    with xprpy.Local() as net:
         info = net.get_info()
         assert isinstance(info, dict)
 
 
 def test_when_outside_the_context_manager_then_get_info_raises_error():
-    with pyntelope.Local() as net:
+    with xprpy.Local() as net:
         ...
     with pytest.raises(RuntimeError):
         _ = net.get_info()
@@ -425,7 +425,7 @@ def test_when_outside_the_context_manager_then_get_info_raises_error():
 
 def test_given_client_when_outside_the_context_manager_then_get_info_raises_error():  # NOQA: E501
     with httpx.Client() as client:
-        with pyntelope.Local(client=client) as net:
+        with xprpy.Local(client=client) as net:
             ...
         with pytest.raises(RuntimeError):
             _ = net.get_info()
@@ -433,7 +433,7 @@ def test_given_client_when_outside_the_context_manager_then_get_info_raises_erro
 
 def test_given_client_and_context_manager_close_both_dont_raise_errors():
     with httpx.Client() as client:
-        with pyntelope.Local(client=client):
+        with xprpy.Local(client=client):
             ...
 
 
@@ -446,7 +446,7 @@ def test_given_no_client_when_make_two_requests_then_client_factory_is_called_tw
         response.status_code = 200
         mock_client.post.return_value = response
 
-        net = pyntelope.Local()
+        net = xprpy.Local()
         net.get_info()
         net.get_info()
         assert m.call_count == 2
@@ -460,7 +460,7 @@ def test_given_client_when_make_two_requests_then_client_factory_is_called_0_tim
         response.status_code = 200
         mock_client.post.return_value = response
 
-        net = pyntelope.Local(client=mock_client)
+        net = xprpy.Local(client=mock_client)
         net.get_info()
         net.get_info()
         assert mock_httpx_client.call_count == 0
@@ -473,7 +473,7 @@ def test_given_net_with_context_manager_when_make_two_requests_then_client_post_
     response = Mock()
     response.status_code = 200
     mock_client.post.return_value = response
-    with pyntelope.Local(client=mock_client) as net:
+    with xprpy.Local(client=mock_client) as net:
         net.get_info()
         net.get_info()
 
@@ -488,7 +488,7 @@ def test_given_net_with_context_manager_when_make_two_requests_then_client_facto
         response = Mock()
         response.status_code = 200
         mock_client.post.return_value = response
-        with pyntelope.Local(client=mock_client) as net:
+        with xprpy.Local(client=mock_client) as net:
             net.get_info()
             net.get_info()
 

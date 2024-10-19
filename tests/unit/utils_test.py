@@ -1,6 +1,6 @@
 import pytest
 
-import pyntelope
+import xprpy
 
 input_key_expected = [
     (b"a", "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3", "SIG_K1_HMzWEbzA8LXD5CyYHE45CeMMpCXvEy531ntG1jeio9kRHjAHCrtWoV6SFcgdb32rEqEChsW2ne7dakztmJ6JuCMMcziZPd"),  # NOQA: BLK100, E501
@@ -14,20 +14,20 @@ input_key_expected = [
 
 @pytest.mark.parametrize("input_,key,expected", input_key_expected)
 def test_sign_bytes(input_, key, expected):
-    output = pyntelope.utils.sign_bytes(bytes_=input_, key=key)
+    output = xprpy.utils.sign_bytes(bytes_=input_, key=key)
     assert output == expected
 
 
 def test_sign_bytes_with_empty_message_raise_value_error():
     key = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
     with pytest.raises(ValueError):
-        pyntelope.utils.sign_bytes(bytes_="", key=key)
+        xprpy.utils.sign_bytes(bytes_="", key=key)
 
 
 def test_sign_bytes_with_string_raises_type_error():
     key = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
     with pytest.raises(TypeError):
-        pyntelope.utils.sign_bytes(bytes_="a", key=key)
+        xprpy.utils.sign_bytes(bytes_="a", key=key)
 
 
 bogus_private_key = ["", "a", "a" * 100, "a" * 1000]
@@ -36,4 +36,4 @@ bogus_private_key = ["", "a", "a" * 100, "a" * 1000]
 @pytest.mark.parametrize("key", bogus_private_key)
 def test_sign_bytes_with_improper_key_format(key):
     with pytest.raises(ValueError):
-        pyntelope.utils.sign_bytes(bytes_=b"a", key=key)
+        xprpy.utils.sign_bytes(bytes_=b"a", key=key)

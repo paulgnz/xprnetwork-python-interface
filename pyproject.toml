@@ -1,9 +1,9 @@
 [tool.poetry]
-name = "pyntelope"
+name = "xprpy"
 version = "0.8.6"
 description = "Interact with Antelope blockchains"
-authors = ["Team <pyntelope@facings.io>"]
-homepage = "https://github.com/FACINGS/pyntelope"
+authors = ["Team <xprpy@facings.io>"]
+homepage = "https://github.com/FACINGS/xprpy"
 readme = "README.md"
 
 [tool.poetry.dependencies]
@@ -31,7 +31,7 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
-addopts = "-vvv --cov-report=term-missing --cov=pyntelope"
+addopts = "-vvv --cov-report=term-missing --cov=xprpy"
 testpaths = ["tests/unit"]
 log_level = "DEBUG"
 markers = "slow: these tests are very slow"

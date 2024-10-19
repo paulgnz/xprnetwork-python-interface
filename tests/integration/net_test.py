@@ -2,20 +2,20 @@ import re
 
 import pytest
 
-import pyntelope
+import xprpy
 
 aliases = [
-    pyntelope.EosMainnet,
-    pyntelope.KylinTestnet,
-    pyntelope.Jungle3Testnet,
-    pyntelope.TelosMainnet,
-    pyntelope.TelosTestnet,
-    pyntelope.ProtonMainnet,
-    pyntelope.ProtonTestnet,
-    pyntelope.UosMainnet,
-    pyntelope.FioMainnet,
-    pyntelope.WaxTestnet,
-    pyntelope.WaxMainnet,
+    xprpy.EosMainnet,
+    xprpy.KylinTestnet,
+    xprpy.Jungle3Testnet,
+    xprpy.TelosMainnet,
+    xprpy.TelosTestnet,
+    xprpy.ProtonMainnet,
+    xprpy.ProtonTestnet,
+    xprpy.UosMainnet,
+    xprpy.FioMainnet,
+    xprpy.WaxTestnet,
+    xprpy.WaxMainnet,
 ]
 
 

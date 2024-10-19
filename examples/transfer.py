@@ -1,33 +1,33 @@
 """Transfer some WAX to a receiver account."""
 
-import pyntelope
+import xprpy
 
 data = [
     # In this case the account me.wam is transferring to account 'reciever'
-    pyntelope.Data(name="from", value=pyntelope.types.Name("me.wam")),
-    pyntelope.Data(name="to", value=pyntelope.types.Name("receiver")),
-    pyntelope.Data(
+    xprpy.Data(name="from", value=xprpy.types.Name("me.wam")),
+    xprpy.Data(name="to", value=xprpy.types.Name("receiver")),
+    xprpy.Data(
         name="quantity", # Selects the 'quantity' field in this action, must be a valid field in the action
-        value=pyntelope.types.Asset("55.00000000 WAX"), # Asset type must be specified as 'quantity' requires the amount and currency type, which Asset includes
+        value=xprpy.types.Asset("55.00000000 WAX"), # Asset type must be specified as 'quantity' requires the amount and currency type, which Asset includes
     ),
-    pyntelope.Data(
+    xprpy.Data(
         name="memo", # Selects the 'memo' field in this action, just an extra message with the transfer
-        value=pyntelope.types.String("Trying pyntelope"), # String type is used for memo
+        value=xprpy.types.String("Trying xprpy"), # String type is used for memo
     ),
 ]
 
-auth = pyntelope.Authorization(actor="me.wam", permission="active")
+auth = xprpy.Authorization(actor="me.wam", permission="active")
 
-action = pyntelope.Action(
+action = xprpy.Action(
     account="eosio.token",
     name="transfer",
     data=data,
     authorization=[auth],
 )
 
-raw_transaction = pyntelope.Transaction(actions=[action])
+raw_transaction = xprpy.Transaction(actions=[action])
 
-net = pyntelope.WaxTestnet()
+net = xprpy.WaxTestnet()
 linked_transaction = raw_transaction.link(net=net)
 
 key = "a_very_secret_key"

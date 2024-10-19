@@ -14,8 +14,8 @@ from urllib.parse import urljoin
 import httpx
 import pydantic
 
-from pyntelope import exc
-from pyntelope._version import __version__
+from xprpy import exc
+from xprpy._version import __version__
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ DEPRECATION_WARNING = (
     "The abi_bin_to_json and abi_json_to_bin conversion APIs are "
     "both deprecated as of the Leap v3.1 release. "
     "(https://eosnetwork.com/blog/leap-v3-1-release-features/)"
-    "They will also be removed from pyntelope in a future version."
+    "They will also be removed from xprpy in a future version."
 )
 
 
@@ -86,7 +86,7 @@ class Net:
         url = urljoin(self.host, endpoint)
 
         headers = {
-            "user-agent": f"pyntelope/{__version__}",
+            "user-agent": f"xprpy/{__version__}",
             "content-type": "application/json",
         }
         headers.update(self.headers)

@@ -1,30 +1,30 @@
 """Send a message."""
 
 
-import pyntelope
+import xprpy
 
 
 data = [
     # Not specifying an account with the "to" field will send the message to the same account sending it in the "from" field
-    pyntelope.Data(name="from", value=pyntelope.types.Name("me.wam")),
-    pyntelope.Data(
+    xprpy.Data(name="from", value=xprpy.types.Name("me.wam")),
+    xprpy.Data(
         name="message",
-        value=pyntelope.types.String("hello from pyntelope"), # String specified for message type, type must be specificed
+        value=xprpy.types.String("hello from xprpy"), # String specified for message type, type must be specificed
     ),
 ]
 
-auth = pyntelope.Authorization(actor="me.wam", permission="active")
+auth = xprpy.Authorization(actor="me.wam", permission="active")
 
-action = pyntelope.Action(
+action = xprpy.Action(
     account="me.wam",
     name="sendmsg",
     data=data,
     authorization=[auth],
 )
 
-raw_transaction = pyntelope.Transaction(actions=[action])
+raw_transaction = xprpy.Transaction(actions=[action])
 
-net = pyntelope.Local()
+net = xprpy.Local()
 linked_transaction = raw_transaction.link(net=net)
 
 key = "a_very_secret_key"

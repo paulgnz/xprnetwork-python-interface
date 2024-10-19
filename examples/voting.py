@@ -1,49 +1,49 @@
 """Vote to a nice blockproducer ;) ."""
 
-import pyntelope
+import xprpy
 
 data = [
     # Specifices the voter account
-    pyntelope.Data(
+    xprpy.Data(
         name="voter",
-        value=pyntelope.types.Name("me.wam"),
+        value=xprpy.types.Name("me.wam"),
     ),
     # Specifices the proxy (can be empty)
-    pyntelope.Data(
+    xprpy.Data(
         name="proxy",
-        value=pyntelope.types.Name(""),
+        value=xprpy.types.Name(""),
     ),
     # Specifics the producers
-    pyntelope.Data(
+    xprpy.Data(
         name="producers",
         # One can vote for mutliple producers, so value is of type array
         # An Array is what is called a Composte type. It is formed of multiple
-        # others pyntelope types.
+        # others xprpy types.
         # Compostes types instantiation are more verbose.
-        value=pyntelope.types.Array.from_dict(
-            ["eosiodetroit"], type_=pyntelope.types.Name
+        value=xprpy.types.Array.from_dict(
+            ["eosiodetroit"], type_=xprpy.types.Name
         ),
         # If you want to instantiate it directly you'd need to provide a tuple
         # of names:
-        # value=pyntelope.types.Array(
-        #     values=(pyntelope.types.Name("eosiodetroit")),
-        #     type_=pyntelope.types.Name,
+        # value=xprpy.types.Array(
+        #     values=(xprpy.types.Name("eosiodetroit")),
+        #     type_=xprpy.types.Name,
         # ),
     ),
 ]
 
-auth = pyntelope.Authorization(actor="me.wam", permission="active")
+auth = xprpy.Authorization(actor="me.wam", permission="active")
 
-action = pyntelope.Action(
+action = xprpy.Action(
     account="eosio",
     name="voteproducer",
     data=data,
     authorization=[auth],
 )
 
-raw_transaction = pyntelope.Transaction(actions=[action])
+raw_transaction = xprpy.Transaction(actions=[action])
 
-net = pyntelope.WaxTestnet()
+net = xprpy.WaxTestnet()
 linked_transaction = raw_transaction.link(net=net)
 
 key = "a_very_secret_key"

@@ -8,8 +8,8 @@ from pathlib import Path
 import pydantic
 import pytest
 
-from pyntelope import types
-from pyntelope.types.compostes import _AbiType
+from xprpy import types
+from xprpy.types.compostes import _AbiType
 
 from .contracts.valid import eosio_token
 from .contracts.valid import simplecontract as valid_contract
