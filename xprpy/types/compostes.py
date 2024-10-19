@@ -5,9 +5,12 @@ import binascii
 import json
 import zipfile
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple, Type, Any
 
 import pydantic
+from pydantic import BaseModel, Field, field_validator, model_validator
+
+
 
 from . import primitives
 from .base import AntelopeType, Composte, Primitive
@@ -39,59 +42,64 @@ class Wasm(Primitive):
 
 
 class Array(Composte):
-    values: tuple
-    type_: type
+    values: Tuple[Any, ...]
+    type_: Type[AntelopeType]
 
-    @pydantic.validator("type_")
+    @field_validator("type_")
     def must_be_subclass_of_antelope(cls, v):
         if not issubclass(v, AntelopeType):
-            raise ValueError("Type must be subclass of AntelopeType")
+            raise ValueError("type_ must be a subclass of AntelopeType")
         return v
 
-    @pydantic.root_validator
-    def all_values_must_be_instances_of_type(cls, all_values):
-        type_ = all_values["type_"]
-        values = all_values["values"]
+    @model_validator(mode='after')
+    def all_values_must_be_instances_of_type(self):
+        type_ = self.type_
+        values = self.values
         for value in values:
             if not isinstance(value, type_):
                 msg = (
-                    f"{value=} is of type={type(value)} "
-                    f"but instance of {type_} was expected"
+                    f"{value=} is of type {type(value)}, "
+                    f"but an instance of {type_} was expected."
                 )
                 raise TypeError(msg)
-        return all_values
+        return self
 
     @classmethod
-    def from_dict(cls, d: dict, /, type_: type):
+    def from_dict(cls, d: dict, /, type_: Type[AntelopeType]):
         try:
             _ = iter(d)
         except TypeError:
             raise TypeError("Only iterables are supported.")
 
-        if issubclass(type_, Primitive):
+        if issubclass(type_, primitives.Primitive):
             constructor = type_
         elif issubclass(type_, Composte):
             constructor = type_.from_dict
+        else:
+            raise TypeError("type_ must be a subclass of Primitive or Composte")
+
         values = tuple(constructor(i) for i in d)
         obj = cls(values=values, type_=type_)
         return obj
 
     def to_dict(self):
-        if issubclass(self.type_, Primitive):
+        if issubclass(self.type_, primitives.Primitive):
             d = [i.value for i in self.values]
         elif issubclass(self.type_, Composte):
             d = [i.to_dict() for i in self.values]
+        else:
+            raise TypeError("type_ must be a subclass of Primitive or Composte")
         return d
 
     @classmethod
-    def from_bytes(cls, bytes_: bytes, /, type_: type):
+    def from_bytes(cls, bytes_: bytes, /, type_: Type[AntelopeType]):
         length = primitives.Varuint32.from_bytes(bytes_)
-        bytes_ = bytes_[len(length) :]  # NOQA: E203
+        bytes_ = bytes_[len(length):]
         values = []
-        for n in range(length.value):
+        for _ in range(length.value):
             value = type_.from_bytes(bytes_)
             values.append(value)
-            bytes_ = bytes_[len(value) :]  # NOQA: E203
+            bytes_ = bytes_[len(value):]
         values = tuple(values)
         obj = cls(values=values, type_=type_)
         return obj
@@ -106,7 +114,10 @@ class Array(Composte):
 
     def __getitem__(self, index, /):
         sliced_values = self.values[index]
-        sliced_obj = self.__class__(values=sliced_values, type_=self.type_)
+        if isinstance(sliced_values, tuple):
+            sliced_obj = self.__class__(values=sliced_values, type_=self.type_)
+        else:
+            sliced_obj = sliced_values
         return sliced_obj
 
 
@@ -120,9 +131,9 @@ class Abi(Composte):
     ricardian_clauses: Array
     error_messages: Array
     abi_extensions: Array
-    variants: Optional[Array]
-    action_results: Optional[Array]
-    kv_tables: Optional[Array]
+    variants: Optional[Array] = None
+    action_results: Optional[Array] = None
+    kv_tables: Optional[Array] = None
 
     @classmethod
     def from_dict(cls, /, d: dict):

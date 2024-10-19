@@ -11,6 +11,8 @@ import pydantic
 
 from . import types, utils
 from .net import Net
+from pydantic import Field, StringConstraints, ConfigDict
+from typing_extensions import Annotated
 
 
 class Authorization(pydantic.BaseModel):
@@ -21,8 +23,8 @@ class Authorization(pydantic.BaseModel):
     permission: str
     """
 
-    actor: pydantic.constr(min_length=1, max_length=13)
-    permission: pydantic.constr(min_length=1, max_length=13)
+    actor: Annotated[str, StringConstraints(min_length=1, max_length=13)]
+    permission: Annotated[str, StringConstraints(min_length=1, max_length=13)]
 
     def __bytes__(self):
         bytes_ = b""
@@ -31,10 +33,7 @@ class Authorization(pydantic.BaseModel):
         permission = types.Name(self.permission)
         bytes_ += bytes(permission)
         return bytes_
-
-    class Config:
-        extra = "forbid"
-        frozen = True
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
 
 class Data(pydantic.BaseModel):
@@ -89,10 +88,7 @@ class Data(pydantic.BaseModel):
 
     def __bytes__(self):
         return bytes(self.value)
-
-    class Config:
-        extra = "forbid"
-        frozen = True
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
 
 class Action(pydantic.BaseModel):
@@ -105,9 +101,9 @@ class Action(pydantic.BaseModel):
     authorization: list[Action]
     """
 
-    account: pydantic.constr(max_length=13)
+    account: Annotated[str, StringConstraints(max_length=13)]
     name: str
-    authorization: pydantic.conlist(Authorization, min_items=1, max_items=10)
+    authorization: Annotated[List[Authorization], Field(min_length=1, max_length=10)]
     data: List[Data]
 
     @pydantic.validator("data", "authorization")
@@ -128,11 +124,7 @@ class Action(pydantic.BaseModel):
     def __bytes__(self):
         name = self.__class__.__name__
         raise TypeError(f"cannot convert '{name}' object to bytes")
-
-    class Config:
-        extra = "forbid"
-        frozen = True
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(extra="forbid", frozen=True, arbitrary_types_allowed=True)
 
 
 class LinkedAction(Action):
@@ -145,9 +137,9 @@ class LinkedAction(Action):
     authorization: list[Authorization]
     """
 
-    account: pydantic.constr(max_length=13)
+    account: Annotated[str, StringConstraints(max_length=13)]
     name: str
-    authorization: pydantic.conlist(Authorization, min_items=1, max_items=10)
+    authorization: Annotated[List[Authorization], Field(min_length=1, max_length=10)]
     data: List[Data]
     net: Net
 
@@ -206,11 +198,11 @@ class Transaction(pydantic.BaseModel):
     chain_id: Optional[str]
     """
 
-    actions: pydantic.conlist(Action, min_items=1, max_items=10)
-    expiration_delay_sec: pydantic.conint(ge=0) = 600
-    delay_sec: pydantic.conint(ge=0) = 0
-    max_cpu_usage_ms: pydantic.conint(ge=0) = 0
-    max_net_usage_words: pydantic.conint(ge=0) = 0
+    actions: Annotated[List[Action], Field(min_length=1, max_length=10)]
+    expiration_delay_sec: Annotated[int, Field(ge=0)] = 600
+    delay_sec: Annotated[int, Field(ge=0)] = 0
+    max_cpu_usage_ms: Annotated[int, Field(ge=0)] = 0
+    max_net_usage_words: Annotated[int, Field(ge=0)] = 0
 
     @pydantic.validator("actions")
     def _transform_to_tuple(cls, v):
@@ -244,11 +236,7 @@ class Transaction(pydantic.BaseModel):
         )
 
         return new_trans
-
-    class Config:
-        extra = "forbid"
-        frozen = True
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(extra="forbid", frozen=True, arbitrary_types_allowed=True)
 
 
 class LinkedTransaction(Transaction):
@@ -258,11 +246,11 @@ class LinkedTransaction(Transaction):
     It becomes a SignedTransaction when you sign it.
     """
 
-    actions: pydantic.conlist(LinkedAction, min_items=1, max_items=10)
+    actions: Annotated[List[LinkedAction], Field(min_length=1, max_length=10)]
     net: Net
     chain_id: str
-    ref_block_num: str
-    ref_block_prefix: str
+    ref_block_num: int
+    ref_block_prefix: int
     expiration: dt.datetime
 
     def __bytes__(self):
@@ -326,7 +314,7 @@ class SignedTransaction(LinkedTransaction):
     Also you can sign it again.
     """
 
-    signatures: pydantic.conlist(str, min_items=1, max_items=10)
+    signatures: Annotated[List[str], Field(min_length=1, max_length=10)]
 
     @pydantic.validator("signatures")
     def _transform_to_tuple(cls, v):

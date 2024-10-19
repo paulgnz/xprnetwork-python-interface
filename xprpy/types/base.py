@@ -3,6 +3,7 @@
 from abc import ABC, abstractmethod
 
 import pydantic
+from pydantic import ConfigDict
 
 
 class AntelopeType(pydantic.BaseModel, ABC):
@@ -18,10 +19,7 @@ class AntelopeType(pydantic.BaseModel, ABC):
         """Lenght of value in bytes."""
         bytes_ = bytes(self)
         return len(bytes_)
-
-    class Config:
-        extra = "forbid"
-        frozen = True
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
 
 class Primitive(AntelopeType, ABC):

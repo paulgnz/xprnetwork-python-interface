@@ -1,25 +1,25 @@
 """Antelope concrete primitive types."""
 
-
 import calendar
 import datetime as dt
 import re
 import struct
 
-import pydantic
+from pydantic import BaseModel, Field, StringConstraints, field_validator, model_validator
+from typing_extensions import Annotated
 
 from .base import Primitive
 
 
 class Asset(Primitive):
     """
-    Serialize a Asset.
+    Serialize an Asset.
 
-    serializes an amount (can be a float value) and currency name together
-    uses Symbol type to serialize percision and name of currency,
-    uses Uint64 type to serialize amount
-    amount and name are seperated by one space
-    example: 50.100000 XPR
+    Serializes an amount (can be a float value) and currency name together.
+    Uses Symbol type to serialize precision and name of currency,
+    uses Uint64 type to serialize amount.
+    Amount and name are separated by one space.
+    Example: 50.100000 XPR
     """
 
     value: str
@@ -28,7 +28,7 @@ class Asset(Primitive):
         """
         Extract the name from a raw Asset string.
 
-        example: "XPR" from Asset string "99.1000000 XPR"
+        Example: "XPR" from Asset string "99.1000000 XPR"
         """
         stripped_value = self.value.strip()
         return stripped_value.split(" ")[1]
@@ -37,27 +37,22 @@ class Asset(Primitive):
         """
         Extract the integer digits (digits before the decimal).
 
-        from raw Asset string
-        example: "99" from Asset string "99.1000000 XPR"
+        From raw Asset string.
+        Example: "99" from Asset string "99.1000000 XPR"
         """
         stripped_value = self.value.strip()
         pos = 0
         int_digits = ""
 
-        # check for negative sign
+        # Check for negative sign
         if stripped_value[pos] == "-":
             int_digits += "-"
             pos += 1
 
-        curr_char = stripped_value[pos]
-
-        # get amount value
-        while (
-            pos < len(stripped_value) and curr_char >= "0" and curr_char <= "9"
-        ):
-            int_digits += curr_char
+        # Get amount value
+        while pos < len(stripped_value) and stripped_value[pos].isdigit():
+            int_digits += stripped_value[pos]
             pos += 1
-            curr_char = stripped_value[pos]
 
         return int_digits
 
@@ -65,42 +60,28 @@ class Asset(Primitive):
         """
         Extract the decimal digits as integers (digits after the decimal).
 
-        example: "1000000" from Asset string "99.1000000 XPR"
+        Example: "1000000" from Asset string "99.1000000 XPR"
         """
         stripped_value = self.value.strip()
-        pos = 0
-        precision = 0
-        frac_digits = ""
-        curr_char = 0
-
         if "." in stripped_value:
             pos = stripped_value.index(".") + 1
-            curr_char = stripped_value[pos]
-            while (
-                pos < len(stripped_value)
-                and curr_char >= "0"  # noqa: W503
-                and curr_char <= "9"  # noqa: W503
-            ):
-                frac_digits += curr_char
+            frac_digits = ""
+            while pos < len(stripped_value) and stripped_value[pos].isdigit():
+                frac_digits += stripped_value[pos]
                 pos += 1
-                curr_char = stripped_value[pos]
-                precision += 1
-
+            return frac_digits
         else:
             return ""
-
-        return frac_digits
 
     def get_precision(self):
         """
         Get the precision (number of digits after decimal).
 
-        example: "7" from Asset string "99.1000000 XPR"
+        Example: "7" from Asset string "99.1000000 XPR"
         """
         return len(self.get_frac_digits())
 
     def __bytes__(self):
-
         amount = Uint64(int(self.get_int_digits() + self.get_frac_digits()))
         name = self.get_name()
         symbol = Symbol(str(self.get_precision()) + "," + name)
@@ -112,70 +93,56 @@ class Asset(Primitive):
 
     @classmethod
     def from_bytes(cls, bytes_):
-        amount_bytes = bytes_[:8]  # get first 8 bytes
-        asset_precision = bytes_[8]  # (amount of decimal places)
-        amount = str(
-            struct.unpack("<Q", amount_bytes)[0]
-        )  # amount with decimal values (no decimal splitting yet)
-        # get name (currency) from Symbol
-        name = str(Symbol.from_bytes(bytes_[8:])).split(",")[1][:-1]
-        if asset_precision == 0:
-            value = amount + " " + name
-        else:
-            value = (
-                amount[:-asset_precision]
-                + "."  # noqa: W503
-                + amount[asset_precision + 1 :]  # noqa: W503, E203
-                + " "  # noqa: W503
-                + name  # noqa: W503
-            )  # combine everything and place decimal in correct position
+        amount_bytes = bytes_[:8]  # Get first 8 bytes
+        amount = struct.unpack("<Q", amount_bytes)[0]  # Unpack amount
+
+        # Get symbol
+        symbol = Symbol.from_bytes(bytes_[8:])
+        precision, name = symbol.value.split(",")
+        precision = int(precision)
+
+        # Reconstruct amount with correct precision
+        amount_str = str(amount).zfill(precision + 1)
+        integer_part = amount_str[:-precision] if precision != 0 else amount_str
+        decimal_part = amount_str[-precision:] if precision != 0 else ""
+        value = f"{integer_part}.{decimal_part} {name}" if precision != 0 else f"{integer_part} {name}"
         return cls(value=value)
 
-    @pydantic.validator("value")
-    def amount_must_be_in_the_valid_range(cls, v):
+    @field_validator("value")
+    def amount_must_have_one_space(cls, v):
         value_list = str(v).strip().split(" ")
         if len(value_list) != 2:
-            msg = (
-                f'Input "{v}" must have exactly one space in between '
-                "amount and name"
-            )
+            msg = f'Input "{v}" must have exactly one space between amount and name.'
             raise ValueError(msg)
         return v
 
-    @pydantic.validator("value")
+    @field_validator("value")
     def check_for_frac_digit_if_decimal_exists(cls, v):
         stripped_value = v.strip()
         if "." in stripped_value:
             pos = stripped_value.index(".") + 1
-            curr_char = stripped_value[pos]
-            if (
-                pos < len(stripped_value)
-                and curr_char >= "0"  # noqa: W503
-                and curr_char <= "9"  # noqa: W503
-            ):
-                return v
-            else:
-                msg = (
-                    "decimal provided but no fractional digits were provided."
-                )
+            if pos >= len(stripped_value) or not stripped_value[pos].isdigit():
+                msg = "Decimal provided but no fractional digits were provided."
                 raise ValueError(msg)
         return v
 
-    @pydantic.validator("value", allow_reuse=True)
+    @field_validator("value")
     def check_if_amount_is_valid(cls, v):
         stripped_value = v.strip()
-        amount = float(stripped_value.split(" ")[0])
+        try:
+            amount = float(stripped_value.split(" ")[0])
+        except ValueError:
+            raise ValueError(f'Amount "{stripped_value.split(" ")[0]}" is not a valid number.')
         if amount < 0 or amount > 18446744073709551615:
-            msg = f'amount "{amount}" must be between 0 and ' "2^64 inclusive."
+            msg = f'Amount "{amount}" must be between 0 and 2^64 inclusive.'
             raise ValueError(msg)
         return v
 
-    @pydantic.validator("value", allow_reuse=True)
+    @field_validator("value")
     def check_if_name_is_valid(cls, v):
         stripped_value = v.strip()
         name = stripped_value.split(" ")[1]
-        match = re.search("^[A-Z]{1,7}$", name)
-        if not match:
+        if not re.fullmatch(r"^[A-Z]{1,7}$", name):
             msg = f'Input "{name}" must be A-Z and between 1 to 7 characters.'
             raise ValueError(msg)
         return v
@@ -189,7 +156,7 @@ class Bool(Primitive):
 
     @classmethod
     def from_bytes(cls, bytes_):
-        return cls(value=int(bytes_[:1].hex(), 16))
+        return cls(value=bool(int(bytes_[:1].hex(), 16)))
 
 
 class Bytes(Primitive):
@@ -204,54 +171,50 @@ class Bytes(Primitive):
 
 
 class Int8(Primitive):
-    value: pydantic.conint(ge=-128, lt=128)
+    value: Annotated[int, Field(ge=-128, le=127)]
 
     def __bytes__(self):
         return struct.pack("<b", self.value)
 
     @classmethod
     def from_bytes(cls, bytes_):
-        struct_tuple = struct.unpack("<b", bytes_[:1])
-        value = struct_tuple[0]
+        value = struct.unpack("<b", bytes_[:1])[0]
         return cls(value=value)
 
 
 class Int16(Primitive):
-    value: pydantic.conint(ge=-(2**15), lt=2**15)
+    value: Annotated[int, Field(ge=-(2**15), le=2**15 - 1)]
 
     def __bytes__(self):
         return struct.pack("<h", self.value)
 
     @classmethod
     def from_bytes(cls, bytes_):
-        struct_tuple = struct.unpack("<h", bytes_[:2])
-        value = struct_tuple[0]
+        value = struct.unpack("<h", bytes_[:2])[0]
         return cls(value=value)
 
 
 class Int32(Primitive):
-    value: pydantic.conint(ge=-(2**31), lt=2**31)
+    value: Annotated[int, Field(ge=-(2**31), le=2**31 - 1)]
 
     def __bytes__(self):
         return struct.pack("<i", self.value)
 
     @classmethod
     def from_bytes(cls, bytes_):
-        struct_tuple = struct.unpack("<i", bytes_[:4])
-        value = struct_tuple[0]
+        value = struct.unpack("<i", bytes_[:4])[0]
         return cls(value=value)
 
 
 class Int64(Primitive):
-    value: pydantic.conint(ge=-(2**63), lt=2**63)
+    value: Annotated[int, Field(ge=-(2**63), le=2**63 - 1)]
 
     def __bytes__(self):
         return struct.pack("<q", self.value)
 
     @classmethod
     def from_bytes(cls, bytes_):
-        struct_tuple = struct.unpack("<q", bytes_[:8])
-        value = struct_tuple[0]
+        value = struct.unpack("<q", bytes_[:8])[0]
         return cls(value=value)
 
 
@@ -263,9 +226,8 @@ class Float32(Primitive):
 
     @classmethod
     def from_bytes(cls, bytes_):
-        struct_tuple = struct.unpack("<f", bytes_)
-        value = struct_tuple[0]
-        return cls(value)
+        value = struct.unpack("<f", bytes_)[0]
+        return cls(value=value)
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
@@ -281,32 +243,31 @@ class Float64(Primitive):
 
     @classmethod
     def from_bytes(cls, bytes_):
-        struct_tuple = struct.unpack("<d", bytes_)
-        value = struct_tuple[0]
-        return cls(value)
+        value = struct.unpack("<d", bytes_)[0]
+        return cls(value=value)
 
 
 class Name(Primitive):
-    # regex = has at least one "non-dot" char
-    value: pydantic.constr(
+    # Adjusted regex pattern to avoid unsupported look-around assertions
+    value: Annotated[str, StringConstraints(
         max_length=13,
-        regex=r"^[\.a-z1-5]*[a-z1-5]+[\.a-z1-5]*$|^(?![\s\S])",  # NOQA: F722
-    )
+        pattern=r"^[\.a-z1-5]{0,13}$"
+    )]
 
     def __eq__(self, other):
-        """Equality diregards dots in names."""
-        if type(other) != type(self):
+        """Equality disregards dots in names."""
+        if not isinstance(other, self.__class__):
             return False
         return self.value.replace(".", "") == other.value.replace(".", "")
 
-    @pydantic.validator("value")
+    @field_validator("value")
     def last_char_restriction(cls, v):
         if len(v) == 13:
-            allowed = {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "."}
+            allowed = set("abcdefghijklmnopqrstuvwxyz.")
             if v[-1] not in allowed:
                 msg = (
-                    "When account name is 13 char long, last char must be "
-                    f'in range a-z or ".". "{v[-1]}" found.'
+                    "When account name is 13 characters long, last character must be "
+                    f'in a-z or ".". "{v[-1]}" found.'
                 )
                 raise ValueError(msg)
         return v
@@ -324,25 +285,24 @@ class Name(Primitive):
 
     @classmethod
     def char_to_symbol(cls, c):
-        if c >= ord("a") and c <= ord("z"):
-            return (c - ord("a")) + 6
-        if c >= ord("1") and c <= ord("5"):
-            return (c - ord("1")) + 1
+        c = ord(c)
+        if ord('a') <= c <= ord('z'):
+            return (c - ord('a')) + 6
+        if ord('1') <= c <= ord('5'):
+            return (c - ord('1')) + 1
         return 0
 
     @classmethod
     def string_to_uint64(cls, s):
         if len(s) > 13:
-            raise Exception("invalid string length")
+            raise ValueError("Invalid string length")
         name = 0
         i = 0
         while i < min(len(s), 12):
-            name |= (cls.char_to_symbol(ord(s[i])) & 0x1F) << (
-                64 - 5 * (i + 1)
-            )
+            name |= (cls.char_to_symbol(s[i]) & 0x1F) << (64 - 5 * (i + 1))
             i += 1
         if len(s) == 13:
-            name |= cls.char_to_symbol(ord(s[12])) & 0x0F
+            name |= cls.char_to_symbol(s[12]) & 0x0F
         return name
 
     @classmethod
@@ -370,13 +330,13 @@ class String(Primitive):
         bytes_ = bytes(Varuint32(value=length)) + bytes_
         return bytes_
 
-    @pydantic.validator("value")
+    @field_validator("value")
     def must_not_contain_multi_utf_char(cls, v):
         if len(v) < len(v.encode("utf8")):
             msg = (
-                f'Input "{v}" has a multi-byte utf character in it, '
+                f'Input "{v}" has a multi-byte UTF character in it, '
                 "currently xprpy does not support serialization of "
-                "multi-byte utf characters."
+                "multi-byte UTF characters."
             )
             raise ValueError(msg)
         return v
@@ -384,8 +344,8 @@ class String(Primitive):
     @classmethod
     def from_bytes(cls, bytes_):
         size = Varuint32.from_bytes(bytes_)
-        start = len(size)
-        string_bytes = bytes_[start : start + size.value]  # NOQA: E203
+        start = len(bytes(size))
+        string_bytes = bytes_[start : start + size.value]
         value = string_bytes.decode("utf8")
         return cls(value=value)
 
@@ -394,120 +354,102 @@ class Symbol(Primitive):
     """
     Serialize a Symbol.
 
-    serializes a percision and currency name together
-    precision is used to indicate how many decimals there
-    are in an Asset type amount
-    precision and name are seperated by a commma
-    example: 1,XPR
+    Serializes a precision and currency name together.
+    Precision is used to indicate how many decimals there are in an Asset type amount.
+    Precision and name are separated by a comma.
+    Example: 1,XPR
     """
 
     value: str
 
-    @pydantic.validator("value", allow_reuse=True)
+    @field_validator("value")
     def name_must_be_of_valid_length(cls, v):
-        name = v.split(",")[1]
-        match = re.search("^[A-Z]{1,7}$", name)
-        if not match:
+        parts = v.split(",")
+        if len(parts) != 2:
+            raise ValueError(f'Input "{v}" must contain a single comma separating precision and name.')
+        name = parts[1]
+        if not re.fullmatch(r"^[A-Z]{1,7}$", name):
             msg = f'Input "{name}" must be A-Z and between 1 to 7 characters.'
             raise ValueError(msg)
         return v
 
-    @pydantic.validator("value", allow_reuse=True)
+    @field_validator("value")
     def precision_must_be_in_the_valid_range(cls, v):
-        precision = int(v.split(",")[0])
+        precision_str = v.split(",")[0]
+        if not precision_str.isdigit():
+            raise ValueError(f'Precision "{precision_str}" must be a non-negative integer.')
+        precision = int(precision_str)
         if precision < 0 or precision > 16:
-            msg = (
-                f'precision "{precision}" must be between 0 and '
-                "16 inclusive."
-            )
+            msg = f'Precision "{precision}" must be between 0 and 16 inclusive.'
             raise ValueError(msg)
         return v
 
     def __bytes__(self):
         precision = int(self.value.split(",")[0])
         precision_bytes_ = struct.pack("<B", (precision & 0xFF))
-        bytes_ = precision_bytes_
         name = self.value.split(",")[1]
         name_bytes_ = name.encode("utf8")
-        bytes_ += name_bytes_
-        leftover_byte_space = len(name) + 1
-        while (
-            leftover_byte_space < 8
-        ):  # add null bytes in remaining empty space
+        bytes_ = precision_bytes_ + name_bytes_
+        leftover_byte_space = len(name_bytes_) + 1
+        while leftover_byte_space < 8:
             bytes_ += struct.pack("<B", 0)
             leftover_byte_space += 1
         return bytes_
 
     @classmethod
     def from_bytes(cls, bytes_):
-        bytes_len = len(bytes_)
-        precision = ""
-        name = ""
-        for i in range(bytes_len):
-            if chr(bytes_[i]).isupper():
-                precision = str(bytes_[0])
-                name_bytes = bytes_[i:]  # name is all bytes after precision
-                for k in range(1, len(name_bytes) + 1):
-                    if not chr(bytes_[k]).isupper():
-                        name_bytes = name_bytes[
-                            : k - 1
-                        ]  # name only goes up to the last upper case character
-                name = name_bytes.decode("utf8")
-                break
-
-        value = precision + "," + name
+        precision = bytes_[0]
+        name_bytes = bytes_[1:].split(b'\x00', 1)[0]
+        name = name_bytes.decode("utf8")
+        value = f"{precision},{name}"
         return cls(value=value)
 
 
 class Uint8(Primitive):
-    value: pydantic.conint(ge=0, lt=256)  # 2 ** 8
+    value: Annotated[int, Field(ge=0, le=255)]  # 2 ** 8 - 1
 
     def __bytes__(self):
         return struct.pack("<B", self.value)
 
     @classmethod
     def from_bytes(cls, bytes_):
-        struct_tuple = struct.unpack("<B", bytes_[:1])
-        value = struct_tuple[0]
+        value = struct.unpack("<B", bytes_[:1])[0]
         return cls(value=value)
 
 
 class Uint16(Primitive):
-    value: pydantic.conint(ge=0, lt=65536)  # 2 ** 16
+    value: Annotated[int, Field(ge=0, le=65535)]  # 2 ** 16 - 1
 
     def __bytes__(self):
         return struct.pack("<H", self.value)
 
     @classmethod
     def from_bytes(cls, bytes_):
-        struct_tuple = struct.unpack("<H", bytes_[:2])
-        value = struct_tuple[0]
+        value = struct.unpack("<H", bytes_[:2])[0]
         return cls(value=value)
 
 
 class Uint32(Primitive):
-    value: pydantic.conint(ge=0, lt=4294967296)  # 2 ** 32
+    value: Annotated[int, Field(ge=0, le=4294967295)]  # 2 ** 32 - 1
 
     def __bytes__(self):
         return struct.pack("<I", self.value)
 
     @classmethod
     def from_bytes(cls, bytes_):
-        struct_tuple = struct.unpack("<I", bytes_[:4])
-        value = struct_tuple[0]
+        value = struct.unpack("<I", bytes_[:4])[0]
         return cls(value=value)
 
 
 class Uint64(Primitive):
-    value: pydantic.conint(ge=0, lt=18446744073709551616)  # 2 ** 64
+    value: Annotated[int, Field(ge=0, le=18446744073709551615)]  # 2 ** 64 - 1
 
     def __bytes__(self):
         return struct.pack("<Q", self.value)
 
     @classmethod
     def from_bytes(cls, bytes_):
-        struct_tuple = struct.unpack("<Q", bytes_)
-        value = struct_tuple[0]
+        value = struct.unpack("<Q", bytes_[:8])[0]
         return cls(value=value)
 
 
@@ -515,32 +457,31 @@ class TimePoint(Primitive):
     """
     Serialize a datetime.
 
-    Max precision is in miliseconds, anything bellow is rejected
-    Considers UTC time
+    Max precision is in milliseconds, anything below is rejected.
+    Considers UTC time.
     """
 
     value: dt.datetime
 
-    @pydantic.validator("value")
-    def max_precision_is_miliseconds(cls, v):
+    @field_validator("value")
+    def max_precision_is_milliseconds(cls, v):
         if v.microsecond % 1000 != 0:
-            msg = "The smallest time unit allowed is miliseconds"
+            msg = "The smallest time unit allowed is milliseconds."
             raise ValueError(msg)
         return v
 
     def _to_number(self) -> int:
         epoch = dt.datetime(1970, 1, 1, 0, 0, 0)
         since_epoch = self.value - epoch
-        n = since_epoch.total_seconds() * 1_000_000
+        n = int(since_epoch.total_seconds() * 1_000_000)
         return n
 
     @classmethod
-    def _from_number(cls, *, n: int):
+    def _from_number(cls, n: int):
         epoch = dt.datetime(1970, 1, 1, 0, 0, 0)
         delta = dt.timedelta(microseconds=n)
         datetime = epoch + delta
-        obj = cls(datetime)
-        return obj
+        return cls(value=datetime)
 
     def __bytes__(self):
         n = self._to_number()
@@ -551,7 +492,7 @@ class TimePoint(Primitive):
     @classmethod
     def from_bytes(cls, bytes_):
         n = Uint64.from_bytes(bytes_).value
-        obj = cls._from_number(n=n)
+        obj = cls._from_number(n)
         return obj
 
 
@@ -559,19 +500,19 @@ class UnixTimestamp(Primitive):
     """
     Serialize a datetime.
 
-    Precision is in seconds
-    Considers UTC time
+    Precision is in seconds.
+    Considers UTC time.
     """
 
     value: dt.datetime
 
-    @pydantic.validator("value")
-    def remove_everything_bellow_seconds(cls, v):
+    @field_validator("value")
+    def remove_everything_below_seconds(cls, v):
         new_v = v.replace(microsecond=0)
         return new_v
 
     def __bytes__(self):
-        unix_secs = calendar.timegm(self.value.timetuple())
+        unix_secs = calendar.timegm(self.value.utctimetuple())
         uint32_secs = Uint32(value=unix_secs)
         bytes_ = bytes(uint32_secs)
         return bytes_
@@ -584,7 +525,7 @@ class UnixTimestamp(Primitive):
 
 
 class Varuint32(Primitive):
-    value: pydantic.conint(ge=0, le=20989371979)
+    value: Annotated[int, Field(ge=0, le=20989371979)]
 
     def __bytes__(self):
         bytes_ = b""
@@ -592,24 +533,21 @@ class Varuint32(Primitive):
         while True:
             b = val & 0x7F
             val >>= 7
-            b |= (val > 0) << 7
-            uint8 = Uint8(value=b)
-            bytes_ += bytes(uint8)
+            b |= (0x80 if val > 0 else 0x00)
+            bytes_ += struct.pack("<B", b)
             if not val:
                 break
         return bytes_
 
     @classmethod
     def from_bytes(cls, bytes_):
-        offset = 0
-        value = 0
-        for n, byte in enumerate(bytes_):
-            partial_value = byte & 0x7F  # only the 7 first bits matter
-            partial_value_offset = partial_value << offset
-            value |= partial_value_offset
-            offset += 7
-            if n >= 8:
+        shift = 0
+        result = 0
+        for i in range(len(bytes_)):
+            b = bytes_[i]
+            result |= (b & 0x7F) << shift
+            shift += 7
+            if not (b & 0x80):
                 break
-            if not byte & 0x80:  # first bit (carry) off
-                break
-        return cls(value=value)
+        return cls(value=result)
+
