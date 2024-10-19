@@ -291,7 +291,7 @@ class Name(Primitive):
     value: pydantic.constr(
         max_length=13,
         regex=r"^[\.a-z1-5]*[a-z1-5]+[\.a-z1-5]*$|^(?![\s\S])",  # NOQA: F722
-    ) # type: ignore
+    )
 
     def __eq__(self, other):
         """Equality diregards dots in names."""
