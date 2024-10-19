@@ -42,6 +42,8 @@ The `transfer.py` script allows you to transfer XPR tokens between accounts via 
 
 ### Example Usage
 
+See the examples folder for transfer.py
+
 1. **Transfer on Mainnet:**
 
    To send 55.0000 XPR from the account `a.babyagi` to `paul` on the XPR Mainnet with an optional memo:
