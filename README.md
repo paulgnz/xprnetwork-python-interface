@@ -28,7 +28,33 @@ This work is in alpha version. That means that we make constant breaking changes
 
 
 # Using
+## How to Use the `transfer.py` Function
 
+The `transfer.py` script allows you to transfer XPR tokens between accounts via the command line.
+
+### Command-Line Arguments
+
+- `sender`: The account sending the XPR tokens.
+- `receiver`: The account receiving the XPR tokens.
+- `amount`: The amount of XPR to send (e.g., "55.0000 XPR").
+- `--memo`: (Optional) A memo to include with the transaction.
+- `--testnet`: (Optional) Use this flag to run the transaction on the XPR Testnet. If not provided, the transaction will be sent to the XPR Mainnet.
+
+### Example Usage
+
+1. **Transfer on Mainnet:**
+
+   To send 55.0000 XPR from the account `a.babyagi` to `paul` on the XPR Mainnet with an optional memo:
+
+   ```bash
+   python transfer.py a.babyagi paul "55.0000 XPR" --memo "Mainnet transaction"
+
+2. **Transfer on Testnet:**
+
+   To send 55.0000 XPR from the account `a.babyagi` to `paul` on the XPR Testnet with an optional memo:
+
+   ```bash
+   python transfer.py a.babyagi paul "55.0000 XPR" --memo "Testnet transaction" --testnet
 
 
 ## Use Send Message action
