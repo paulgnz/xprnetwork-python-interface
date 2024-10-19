@@ -345,51 +345,12 @@ class Net:
 
 
 class XPRTestnet(Net):
-    default_host = "https://testnet.xpr.detroitledger.tech"
+    default_host = "https://tn1.protonnz.com"
 
 
-class WaxMainnet(Net):
-    default_host = "https://api.xpr.detroitledger.tech"
+class XPRMainnet(Net):
+    default_host = "https://api.protonnz.com"
 
-
-class EosMainnet(Net):
-    default_host = "https://api.eos.detroitledger.tech"
-
-
-class KylinTestnet(Net):
-    default_host = "https://kylin.eossweden.org"
-
-
-class Jungle3Testnet(Net):
-    default_host = "https://jungle3.eossweden.org"
-
-
-class Jungle4Testnet(Net):
-    default_host = "https://jungle4.api.eosnation.io"
-
-
-class TelosMainnet(Net):
-    default_host = "https://telos.caleos.io/"
-
-
-class TelosTestnet(Net):
-    default_host = "https://testnet.telos.detroitledger.tech"
-
-
-class ProtonMainnet(Net):
-    default_host = "https://proton.cryptolions.io"
-
-
-class ProtonTestnet(Net):
-    default_host = "https://testnet.protonchain.com"
-
-
-class UosMainnet(Net):
-    default_host = "https://uos.eosusa.news"
-
-
-class FioMainnet(Net):
-    default_host = "https://fio.cryptolions.io"
 
 
 class Local(Net):
@@ -398,17 +359,7 @@ class Local(Net):
 
 __all__ = [
     "Net",
-    "EosMainnet",
-    "KylinTestnet",
-    "Jungle3Testnet",
-    "Jungle4Testnet",
-    "TelosMainnet",
-    "TelosTestnet",
-    "ProtonMainnet",
-    "ProtonTestnet",
-    "UosMainnet",
-    "FioMainnet",
     "XPRTestnet",
-    "WaxMainnet",
+    "XPRMainnet",
     "Local",
 ]
