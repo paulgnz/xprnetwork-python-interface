@@ -344,12 +344,12 @@ class Net:
         self.client.__exit__(exc_type, exc_value, traceback)
 
 
-class WaxTestnet(Net):
-    default_host = "https://testnet.wax.detroitledger.tech"
+class XPRTestnet(Net):
+    default_host = "https://testnet.xpr.detroitledger.tech"
 
 
 class WaxMainnet(Net):
-    default_host = "https://api.wax.detroitledger.tech"
+    default_host = "https://api.xpr.detroitledger.tech"
 
 
 class EosMainnet(Net):
@@ -408,7 +408,7 @@ __all__ = [
     "ProtonTestnet",
     "UosMainnet",
     "FioMainnet",
-    "WaxTestnet",
+    "XPRTestnet",
     "WaxMainnet",
     "Local",
 ]

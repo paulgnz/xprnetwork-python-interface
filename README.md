@@ -74,7 +74,7 @@ action = xprpy.Action(
 raw_transaction = xprpy.Transaction(actions=[action])
 
 print("Link transaction to the network")
-net = xprpy.WaxTestnet()  # this is an alias for a testnet node
+net = xprpy.XPRTestnet()  # this is an alias for a testnet node
 # notice that xprpy returns a new object instead of change in place
 linked_transaction = raw_transaction.link(net=net)
 

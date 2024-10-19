@@ -9,7 +9,7 @@ data = [
     xprpy.Data(name="receiver", value=xprpy.types.Name("me.wam")),
     xprpy.Data(
         name="quant", # Selects the 'quant' field in this action, must be a valid field in the action
-        value=xprpy.types.Asset("5.00000000 WAX"), # Asset type must be specified as quant requires the amount and currency type, which Asset includes
+        value=xprpy.types.Asset("5.00000000 XPR"), # Asset type must be specified as quant requires the amount and currency type, which Asset includes
     ),
 ]
 
@@ -24,7 +24,7 @@ action = xprpy.Action(
 
 raw_transaction = xprpy.Transaction(actions=[action])
 
-net = xprpy.WaxTestnet()
+net = xprpy.XPRTestnet()
 linked_transaction = raw_transaction.link(net=net)
 
 key = "a_very_secret_key"

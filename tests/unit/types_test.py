@@ -156,17 +156,17 @@ values = [
     # maximum amount of characters
     (types.Symbol, "0,WAXXXXX", b"\x00WAXXXXX"),
     # 1 precision
-    (types.Symbol, "1,WAX", b"\x01WAX\x00\x00\x00\x00"),
+    (types.Symbol, "1,XPR", b"\x01WAX\x00\x00\x00\x00"),
     # max precision
-    (types.Symbol, "16,WAX", b"\x10WAX\x00\x00\x00\x00"),
+    (types.Symbol, "16,XPR", b"\x10WAX\x00\x00\x00\x00"),
     (
         types.Asset,
-        "99.9 WAX",
+        "99.9 XPR",
         b"\xe7\x03\x00\x00\x00\x00\x00\x00\x01WAX\x00\x00\x00\x00",
     ),
     (
         types.Asset,
-        "99 WAX",
+        "99 XPR",
         b"c\x00\x00\x00\x00\x00\x00\x00\x00WAX\x00\x00\x00\x00",
     ),
     (
@@ -464,13 +464,13 @@ error_values = [
     (types.Symbol, "0,"),
     (types.Symbol, "0, "),
     (types.Symbol, ","),
-    (types.Symbol, "17,WAX"),
-    (types.Symbol, "-1,WAX"),
+    (types.Symbol, "17,XPR"),
+    (types.Symbol, "-1,XPR"),
     (types.Asset, "1WAX"),
-    (types.Asset, "1 1 WAX"),
-    (types.Asset, "WAX"),
-    (types.Asset, "-1 WAX"),
-    (types.Asset, str(2**64) + " WAX"),
+    (types.Asset, "1 1 XPR"),
+    (types.Asset, "XPR"),
+    (types.Asset, "-1 XPR"),
+    (types.Asset, str(2**64) + " XPR"),
     (types.Asset, "1 WAXXXXXX"),
     (types.Asset, "99 "),
     (types.Asset, "99"),

@@ -8,11 +8,11 @@ data = [
     xprpy.Data(name="receiver", value=xprpy.types.Name("me.wam")),
     xprpy.Data(
         name="stake_cpu_quantity", # Selects the 'stake_cpu_quantity' field in this action to stake cpu, any fields must exist in the action to be selected
-        value=xprpy.types.Asset("15.00000000 WAX"), # Asset type must be specified as 'stake_cpu_quantity' requires the amount and currency type, which Asset includes
+        value=xprpy.types.Asset("15.00000000 XPR"), # Asset type must be specified as 'stake_cpu_quantity' requires the amount and currency type, which Asset includes
     ),
     xprpy.Data(
         name="stake_net_quantity", # Selects the 'stake_net_quantity' field in this action to stake net
-        value=xprpy.types.Asset("30.00000000 WAX"), # Asset type must be specified as 'stake_net_quantity' requires the amount and currency type, which Asset includes
+        value=xprpy.types.Asset("30.00000000 XPR"), # Asset type must be specified as 'stake_net_quantity' requires the amount and currency type, which Asset includes
     ),
     xprpy.Data(
         name="transfer", # Selects the 'transfer' field in this action to stake cpu
@@ -31,7 +31,7 @@ action = xprpy.Action(
 
 raw_transaction = xprpy.Transaction(actions=[action])
 
-net = xprpy.WaxTestnet()
+net = xprpy.XPRTestnet()
 linked_transaction = raw_transaction.link(net=net)
 
 key = "a_very_secret_key"

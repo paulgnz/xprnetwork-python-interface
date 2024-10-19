@@ -74,7 +74,7 @@ aliases = [
     "ProtonTestnet",
     "UosMainnet",
     "FioMainnet",
-    "WaxTestnet",
+    "XPRTestnet",
     "WaxMainnet",
 ]
 

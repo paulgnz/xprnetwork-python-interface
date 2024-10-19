@@ -100,7 +100,7 @@ def test_backend_transfer_transaction_serialization(net):
         xprpy.Data(name="to", value=xprpy.types.Name("user2")),
         xprpy.Data(
             name="quantity",
-            value=xprpy.types.Asset(str(2**61) + " WAX"),
+            value=xprpy.types.Asset(str(2**61) + " XPR"),
         ),
         xprpy.Data(
             name="memo",
@@ -117,7 +117,7 @@ def test_backend_transfer_transaction_serialization(net):
         json={
             "from": "user2",
             "to": "user2",
-            "quantity": str(2**61) + " WAX",
+            "quantity": str(2**61) + " XPR",
             "memo": "Trying xprpy",
         },
     )

@@ -1,4 +1,4 @@
-"""Transfer some WAX to a receiver account."""
+"""Transfer some XPR to a receiver account."""
 
 import xprpy
 
@@ -8,7 +8,7 @@ data = [
     xprpy.Data(name="to", value=xprpy.types.Name("receiver")),
     xprpy.Data(
         name="quantity", # Selects the 'quantity' field in this action, must be a valid field in the action
-        value=xprpy.types.Asset("55.00000000 WAX"), # Asset type must be specified as 'quantity' requires the amount and currency type, which Asset includes
+        value=xprpy.types.Asset("55.00000000 XPR"), # Asset type must be specified as 'quantity' requires the amount and currency type, which Asset includes
     ),
     xprpy.Data(
         name="memo", # Selects the 'memo' field in this action, just an extra message with the transfer
@@ -27,7 +27,7 @@ action = xprpy.Action(
 
 raw_transaction = xprpy.Transaction(actions=[action])
 
-net = xprpy.WaxTestnet()
+net = xprpy.XPRTestnet()
 linked_transaction = raw_transaction.link(net=net)
 
 key = "a_very_secret_key"

@@ -19,7 +19,7 @@ class Asset(Primitive):
     uses Symbol type to serialize percision and name of currency,
     uses Uint64 type to serialize amount
     amount and name are seperated by one space
-    example: 50.100000 WAX
+    example: 50.100000 XPR
     """
 
     value: str
@@ -28,7 +28,7 @@ class Asset(Primitive):
         """
         Extract the name from a raw Asset string.
 
-        example: "WAX" from Asset string "99.1000000 WAX"
+        example: "XPR" from Asset string "99.1000000 XPR"
         """
         stripped_value = self.value.strip()
         return stripped_value.split(" ")[1]
@@ -38,7 +38,7 @@ class Asset(Primitive):
         Extract the integer digits (digits before the decimal).
 
         from raw Asset string
-        example: "99" from Asset string "99.1000000 WAX"
+        example: "99" from Asset string "99.1000000 XPR"
         """
         stripped_value = self.value.strip()
         pos = 0
@@ -65,7 +65,7 @@ class Asset(Primitive):
         """
         Extract the decimal digits as integers (digits after the decimal).
 
-        example: "1000000" from Asset string "99.1000000 WAX"
+        example: "1000000" from Asset string "99.1000000 XPR"
         """
         stripped_value = self.value.strip()
         pos = 0
@@ -95,7 +95,7 @@ class Asset(Primitive):
         """
         Get the precision (number of digits after decimal).
 
-        example: "7" from Asset string "99.1000000 WAX"
+        example: "7" from Asset string "99.1000000 XPR"
         """
         return len(self.get_frac_digits())
 
@@ -398,7 +398,7 @@ class Symbol(Primitive):
     precision is used to indicate how many decimals there
     are in an Asset type amount
     precision and name are seperated by a commma
-    example: 1,WAX
+    example: 1,XPR
     """
 
     value: str

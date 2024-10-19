@@ -14,7 +14,7 @@ aliases = [
     xprpy.ProtonTestnet,
     xprpy.UosMainnet,
     xprpy.FioMainnet,
-    xprpy.WaxTestnet,
+    xprpy.XPRTestnet,
     xprpy.WaxMainnet,
 ]
 

@@ -43,7 +43,7 @@ action = xprpy.Action(
 
 raw_transaction = xprpy.Transaction(actions=[action])
 
-net = xprpy.WaxTestnet()
+net = xprpy.XPRTestnet()
 linked_transaction = raw_transaction.link(net=net)
 
 key = "a_very_secret_key"
