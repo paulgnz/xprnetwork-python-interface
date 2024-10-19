@@ -2,8 +2,8 @@
 name = "xprpy"
 version = "0.8.6"
 description = "Interact with XPR Network blockchain"
-authors = ["Team <xprpy@facings.io>"]
-homepage = "https://github.com/paulgnz/xprnetwork-python-interface"
+authors = ["Team <consoritum@xprnetwork.org>"]
+homepage = "https://github.com/paulgnz/xprpy"
 readme = "README.md"
 
 [tool.poetry.dependencies]
