@@ -352,7 +352,6 @@ class XPRMainnet(Net):
     default_host = "https://api.protonnz.com"
 
 
-
 class Local(Net):
     default_host = "http://127.0.0.1:8888"
 
