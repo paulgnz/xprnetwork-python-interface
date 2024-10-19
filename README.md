@@ -43,6 +43,9 @@ The `transfer.py` script allows you to transfer XPR tokens between accounts via 
 ### Example Usage
 
 See the examples folder for transfer.py
+Use environment variables:
+XPRNETWORK_ACCOUNT=your_account
+XPRNETWORK_PRIVATE_KEY=your_private_key
 
 1. **Transfer on Mainnet:**
 
