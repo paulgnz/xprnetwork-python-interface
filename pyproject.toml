@@ -1,9 +1,9 @@
 [tool.poetry]
 name = "xprpy"
 version = "0.8.6"
-description = "Interact with Antelope blockchains"
+description = "Interact with XPR Network blockchain"
 authors = ["Team <xprpy@facings.io>"]
-homepage = "https://github.com/FACINGS/xprpy"
+homepage = "https://github.com/paulgnz/xprnetwork-python-interface"
 readme = "README.md"
 
 [tool.poetry.dependencies]
